@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OS Paging Simulator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .frame-card {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .highlight {
+      background-color: #ffc107 !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <h2 class="mb-4 text-center">OS Paging Simulator</h2>
+
+    <div class="mb-3">
+      <label for="pageInput" class="form-label">Page Request Sequence (comma-separated):</label>
+      <input type="text" id="pageInput" class="form-control" placeholder="e.g., 1,2,3,4,1,3">
+    </div>
+    <div class="mb-3">
+      <label for="frameCount" class="form-label">Number of Frames:</label>
+      <input type="number" id="frameCount" class="form-control" min="1" value="3">
+    </div>
+    <button class="btn btn-primary mb-4" onclick="startSimulation()">Start Simulation</button>
+
+    <h4>Frames:</h4>
+    <div class="d-flex gap-3 mb-4" id="framesDisplay"></div>
+
+    <h4>Page Table:</h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr><th>Page</th><th>Frame</th></tr>
+      </thead>
+      <tbody id="pageTable"></tbody>
+    </table>
+
+    <h4>Page Faults:</h4>
+    <ul id="pageFaultLog" class="list-group"></ul>
+  </div>
+
+  <script>
+    let pages = [], frames = [], frameSize = 0, pageTable = {}, currentIndex = 0;
+
+    function startSimulation() {
+      pages = document.getElementById('pageInput').value.split(',').map(p => p.trim());
+      frameSize = parseInt(document.getElementById('frameCount').value);
+      frames = Array(frameSize).fill(null);
+      pageTable = {};
+      currentIndex = 0;
+      document.getElementById('pageFaultLog').innerHTML = '';
+      updateDisplay();
+      simulateNextPage();
+    }
+
+    function simulateNextPage() {
+      if (currentIndex >= pages.length) return;
+      const page = pages[currentIndex];
+      if (Object.values(pageTable).includes(page)) {
+        logPageFault(`Page ${page} hit (already in frame).`);
+      } else {
+        if (frames.includes(null)) {
+          const emptyIndex = frames.indexOf(null);
+          frames[emptyIndex] = page;
+          pageTable[page] = emptyIndex;
+          logPageFault(`Page ${page} loaded into frame ${emptyIndex}.`);
+        } else {
+          const removedPage = frames.shift();
+          delete pageTable[removedPage];
+          frames.push(page);
+          pageTable[page] = frames.length - 1;
+          logPageFault(`Page ${page} loaded (Page ${removedPage} replaced).`);
+        }
+      }
+      currentIndex++;
+      updateDisplay();
+      setTimeout(simulateNextPage, 1000);
+    }
+
+    function updateDisplay() {
+      const frameContainer = document.getElementById('framesDisplay');
+      frameContainer.innerHTML = '';
+      frames.forEach((page, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card text-center frame-card';
+        card.innerText = page !== null ? page : '-';
+        frameContainer.appendChild(card);
+      });
+
+      const pageTableBody = document.getElementById('pageTable');
+      pageTableBody.innerHTML = '';
+      for (let [page, frame] of Object.entries(pageTable)) {
+        const row = `<tr><td>${page}</td><td>${frame}</td></tr>`;
+        pageTableBody.innerHTML += row;
+      }
+    }
+
+    function logPageFault(message) {
+      const log = document.getElementById('pageFaultLog');
+      const item = document.createElement('li');
+      item.className = 'list-group-item';
+      item.textContent = message;
+      log.appendChild(item);
+    }
+  </script>
+</body>
+</html>
