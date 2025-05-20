@@ -1,7 +1,11 @@
 # My Project
 
-## Demo
-[![Watch the demo](https://img.youtube.com/vi/ABC123/0.jpg)](https://www.youtube.com/watch?v=ABC123)
-
 ## Screenshot
-![App Screenshot](assets/screenshot.png)
+![App Screenshot](Paging1.jpg)
+![App Screenshot](Paging2.jpg)
+
+
+## Demo
+[![Watch the demo](Paging.mp4)
+
+
